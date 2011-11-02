@@ -1,5 +1,9 @@
 <?php
 ini_set('memory_limit', '64M');
+
+App::uses('View', 'View');
+App::uses('AssetHelper', 'Assets.View/Helper');
+
 class PrebuildAssetsShell extends Shell {
 	var $langs = array(null);
 /**
@@ -15,8 +19,8 @@ class PrebuildAssetsShell extends Shell {
 			$this->langs = explode(',', $this->params['lang']);
 		}
 
-		App::import('Helper', 'Assets.Asset');
-		$this->AssetHelper = new AssetHelper();
+		$View = new View(null);
+		$this->AssetHelper = new AssetHelper($View);
 		$this->AssetHelper->settings['cleanDir'] = false;
 
 		$this->out('Prebuilding css .. ', false);
@@ -101,18 +105,18 @@ class PrebuildAssetsShell extends Shell {
 		}
 	}
 /**
- * undocumented function
+ * read available layouts
  *
- * @return void
+ * @return string layout files
  * @author Tim Koschuetzki
  */
 	private function _layouts() {
 		App::import('Core', 'Folder');
-		$folder = new Folder(APP . 'views' . DS . 'layouts');
+		$folder = new Folder(APP . 'View' . DS . 'Layouts');
 		$folderContent = $folder->read();
 		$result = array();
 		foreach ($folderContent[1] as $layout) {
-			$result[] = r('.ctp', '', $layout);
+			$result[] = str_replace('.ctp', '', $layout);
 		}
 		return $result;
 	}
@@ -126,6 +130,11 @@ class PrebuildAssetsShell extends Shell {
 		$type = ucfirst($type);
 		$result = array();
 		$inclusionRules = Configure::read($type . 'Includes');
+		if (empty($inclusionRules)) {
+			$this->error('unable to build '.$type.'. No inclusion rules found. Please read the README to see how to setup.');
+			return arra();
+		}
+
 		foreach ($inclusionRules as $file => $pairs) {
 			$pairs = explode(',', $pairs);
 
@@ -146,7 +155,7 @@ class PrebuildAssetsShell extends Shell {
  * @author Tim Koschuetzki
  */
 	private function _emptyDir($path) {
-		require_once(LIBS . 'folder.php');
+		App::uses('Folder', 'Utility');
 		$folder = new Folder($path);
 		$contents = $folder->read();
 		$files = $contents[1];
