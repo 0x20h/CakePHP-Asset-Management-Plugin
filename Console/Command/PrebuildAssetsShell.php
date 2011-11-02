@@ -3,6 +3,7 @@ ini_set('memory_limit', '64M');
 
 App::uses('View', 'View');
 App::uses('AssetHelper', 'Assets.View/Helper');
+App::uses('Folder', 'Utility');
 
 class PrebuildAssetsShell extends Shell {
 	var $langs = array(null);
@@ -34,6 +35,33 @@ class PrebuildAssetsShell extends Shell {
 		$this->prebuildJsAggregation();
 		$end = array_sum(explode(' ', microtime()));
 		$this->out('took ' . round($end - $start, 2) . 's');
+	}
+
+
+/**
+ * check prerequisites for this plugin
+ *
+ */
+	public function init() {
+		// check for aggregate folders
+		foreach (array('css', 'js') as $type) {
+			$path = constant(strtoupper($type)) . 'aggregate';
+			if (!file_exists($path)) {
+				$this->out('creating '.$path);
+				$f = new Folder($path, true, 0755);
+			} else {
+				$this->out('<success>'.$path.' exists. Skipping...</success>');
+			}
+
+			$inc = APP. 'Config' . DS . $type . '_includes.php';
+			if (!file_exists($inc)) {
+				$this->out('<warning>please setup your includes in '.$inc.'</warning>');
+
+			}
+		}
+
+		// check for app/Config/css_includes, js_includes
+
 	}
 /**
  * Prepbuilds all js assets
