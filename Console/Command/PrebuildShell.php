@@ -5,7 +5,7 @@ App::uses('View', 'View');
 App::uses('AssetHelper', 'Assets.View/Helper');
 App::uses('Folder', 'Utility');
 
-class PrebuildAssetsShell extends Shell {
+class PrebuildShell extends Shell {
 	var $langs = array(null);
 /**
  * Prebuilds all css and js assets
